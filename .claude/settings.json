@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_response.filePath // .tool_input.file_path // empty'); case \"$f\" in \"$CLAUDE_PROJECT_DIR\"/frontend/src/*) cd \"$CLAUDE_PROJECT_DIR/frontend\" && npx --no-install prettier --write --log-level warn src/ ;; esac 2>/dev/null || true",
+            "timeout": 60,
+            "statusMessage": "Formateando frontend/src con Prettier..."
+          }
+        ]
+      }
+    ]
+  }
+}
