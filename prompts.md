@@ -29,7 +29,8 @@ Borra el ejemplo de abajo cuando escribas el primero.
 /init
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta Creó el fichero CLAUDE.md
+**Qué salió:** 
+Creó el fichero CLAUDE.md
 
 ## Prompt 2
 
@@ -40,7 +41,9 @@ Borra el ejemplo de abajo cuando escribas el primero.
 /mcp
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta Listó los MCP servers. entre ellos en Local MCPs el atlassian. Me autentiqué y se quedó listo
+**Qué salió:** 
+Listó los MCP servers. entre ellos en Local MCPs el atlassian. Me autentiqué y se quedó listo
+
 
 ## Prompt 3
 
@@ -51,11 +54,12 @@ Borra el ejemplo de abajo cuando escribas el primero.
 quiero una skill que se llame /priority-ticket que traiga el ticket que tenga yo assignado de prioridad más alta  que esté en "To Do" (por hacer), que resuma los criterios de aceptación y entra en plan mode proponiendo como implementarse. Si se aprueba el plan, lo mueve a "en curso"
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta 
+**Qué salió:** 
 Me creó la carpeta en la raiz del proyecto .claude/skills/priority-ticket con un fichero SKILL.md
 reescribió la descripción 
 me indicó que habia añadido un parámetro para poder indicar el código del proyecto
 me pidió reiniciar la session de claude porque se habia creaco esa carpera de .claude nueva
+
 
 ## Prompt 4
 
@@ -66,7 +70,7 @@ me pidió reiniciar la session de claude porque se habia creaco esa carpera de .
 quiero una skill que se llame /comit que haga un commit convencional (`tipo(scope): descripción`) a partir de los cambios preparados.
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta 
+**Qué salió:** 
 me creó el skill similar al anterior. Hice un error de sintaxis ya que le puse comit y me avisó de que me habia mantenido el nombre (solo con una "m"). ahora le diré que me renombre la carpeta.
 
 ## Prompt 5
@@ -78,7 +82,7 @@ me creó el skill similar al anterior. Hice un error de sintaxis ya que le puse 
 me equivoqué con el nombre de la skill, queria decir /commit y no /comit. cámbialo.
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta 
+**Qué salió:** 
 me cambió la carpeta con el nombre correcto.
 me recuerda que debo salir de la session para recargar las skills
 en la descripción y pasos del /commit añadió muchas cosas por su cuenta que revisé y tenian sentido
@@ -94,7 +98,7 @@ me gustaria que crearas un subagente "adversarial-reviewer" que sea capaz de rev
 
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta 
+**Qué salió:** 
 creó un fichero .md con el nombre del agente en la carpeta .claude/agents
 incluyó muchas instrucciones y lo que debia haceer, lo que no y como devolver el resultado.
 me indica cómo usarlo: pídelo directamente, por ejemplo: "revisa el PR #3 con adversarial-reviewer".
@@ -109,7 +113,7 @@ me indica cómo usarlo: pídelo directamente, por ejemplo: "revisa el PR #3 con 
 Quiero que prepares un hook que formatee el codigo del frontend cada vez que el agente edite un archivo. El frontend no trae formateador así que quiero que instales Prettier en "frontend/" y lo ejecutes sobre "frontend/src/".
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta 
+**Qué salió:** 
 hizo muchas cosas... al final indicó que habia creado el hook y que lo habia probado y que funcionaba
 
 añadió un script para ejecutar como npm run format (prettier --write src/) con los valores por defecto.
@@ -128,7 +132,7 @@ le dije que sí para dejarlo como antes con comillas simples
 Prefiero usar las comillas simples y sin punto y coma como venia en la plantilla. ajusta la configuración del pretty y ejecuta el formateo.
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta 
+**Qué salió:** 
 me hizo caso y configuró un par de settings en un .json de prettierrc y aplicó el formateo dejando las comillas simples.
 
 
@@ -141,7 +145,7 @@ me hizo caso y configuró un par de settings en un .json de prettierrc y aplicó
 Te indico unas reglas de proceso, al final del CLAUDE.md crea una rama nueva antes de tocar código. al cerrar usa /commit y haz el pull request con `gh pr create`. después, que el subagente revisor  se ejecute contra ese pull request. En la ventana de chat muestrame solo la URL del pull request.
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta 
+**Qué salió:** 
 modificó el CLAUDE.md para añadir las reglas del proceso indicadas.
 me avisó de que el resultado del subagente de revisión no se mostraria por ningún sitio al haberle indicado que solo postrara la URL del PR. Me sugirió opciones que le voy a indicar en otro prompt
 
@@ -154,7 +158,7 @@ me avisó de que el resultado del subagente de revisión no se mostraria por nin
 Si que me gustaría ver el resultado del revisor. la opción de añadirlos como comentarios al pull request me pacece bien. Ajusta las reglas del proceso.
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta 
+**Qué salió:** 
 me indica que ha cambiado las reglas del proceso para añadir un paso de añadir el informe del revisor como comentario al PR.
 
 
@@ -167,7 +171,7 @@ me indica que ha cambiado las reglas del proceso para añadir un paso de añadir
 crea un enlace (ln -s) de CLAUDE.md hacia AGENTS.md para que otras herramientas puedas usar las instrucciones
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta 
+**Qué salió:** 
 creó el symlink correctamente.
 
 
@@ -180,8 +184,8 @@ creó el symlink correctamente.
 /exit
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta 
-salio al SO
+**Qué salió:** 
+salio al bash
 
 
 
@@ -194,5 +198,6 @@ salio al SO
 /priority-ticket
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta 
-salio al SO
+**Qué salió:** 
+el Plan con opciones para ejecutar
+ 
