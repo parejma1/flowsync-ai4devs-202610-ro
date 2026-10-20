@@ -35,6 +35,21 @@ describe('toErrorMessages', () => {
     ])
   })
 
+  it('concuerda en género con el campo', () => {
+    const error = new ApiError(422, [
+      { message: '', rule: 'required', field: 'password' },
+      { message: '', rule: 'required', field: 'email' },
+      { message: '', rule: 'regex', field: 'passwordConfirmation' },
+      { message: '', rule: 'regex', field: 'desconocido' },
+    ])
+    expect(toErrorMessages(error)).toEqual([
+      'La contraseña es obligatoria.',
+      'El email es obligatorio.',
+      'La confirmación de contraseña no es válida.',
+      'Un campo no es válido.',
+    ])
+  })
+
   it('avisa de los errores de red', () => {
     expect(toErrorMessages(new ApiError(0, []))).toEqual([
       'No se pudo conectar con el servidor. Inténtalo de nuevo.',

@@ -1,10 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
+import { E2E_EMAIL_DOMAIN } from './db-cleanup.ts'
 
 const API_URL = 'http://localhost:3333/api/v1'
 const PASSWORD = 'secret123'
 
 function uniqueEmail() {
-  return `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`
+  return `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@${E2E_EMAIL_DOMAIN}`
 }
 
 async function signupViaUi(page: Page, email: string, fullName = '') {
@@ -27,6 +28,18 @@ test.describe('FLOW-1: autenticación en el frontend', () => {
   test('el perfil sin sesión redirige a /login', async ({ page }) => {
     await page.goto('/profile')
     await expect(page).toHaveURL(/\/login$/)
+  })
+
+  test('un token caducado o revocado cierra la sesión y vuelve a /login', async ({
+    page,
+  }) => {
+    await page.goto('/login')
+    await page.evaluate(() => localStorage.setItem('flowsync.token', 'oat_revocado'))
+
+    await page.goto('/profile')
+
+    await expect(page).toHaveURL(/\/login$/)
+    expect(await page.evaluate(() => localStorage.getItem('flowsync.token'))).toBeNull()
   })
 
   test('registro: crea la cuenta y entra al perfil', async ({ page }) => {

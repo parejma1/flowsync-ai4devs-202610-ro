@@ -3,16 +3,19 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import {
   TOKEN_KEY,
+  TYPED_EMAIL,
+  currentPath,
   jsonResponse,
   mockFetch,
   renderApp,
   requestBody,
+  requestHeaders,
   user,
 } from '@/test/utils'
 
 async function fillAndSubmit({
   fullName = '',
-  email = 'ada@example.com',
+  email = TYPED_EMAIL,
   password = 'secret123',
   confirmation = password,
 }: {
@@ -40,16 +43,21 @@ describe('SignupPage (FLOW-1)', () => {
 
     await fillAndSubmit()
 
-    expect(await screen.findByText('ada@example.com')).toBeInTheDocument()
+    // Se muestra el email que devuelve /account/profile, no el tecleado.
+    expect(await screen.findByText(user.email)).toBeInTheDocument()
+    expect(currentPath()).toBe('/profile')
     expect(fetchMock.mock.calls[0][0]).toMatch(/\/auth\/signup$/)
     // fullName es obligatorio como clave aunque vaya vacío.
     expect(requestBody(fetchMock)).toEqual({
       fullName: null,
-      email: 'ada@example.com',
+      email: TYPED_EMAIL,
       password: 'secret123',
       passwordConfirmation: 'secret123',
     })
     expect(localStorage.getItem(TOKEN_KEY)).toBe('oat_signup')
+    expect(requestHeaders(fetchMock, 1)).toMatchObject({
+      Authorization: 'Bearer oat_signup',
+    })
   })
 
   it('envía el nombre si se rellena', async () => {
@@ -61,7 +69,7 @@ describe('SignupPage (FLOW-1)', () => {
 
     await fillAndSubmit({ fullName: ' Ada Lovelace ' })
 
-    await screen.findByText('ada@example.com')
+    await screen.findByText(user.email)
     expect(requestBody(fetchMock).fullName).toBe('Ada Lovelace')
   })
 
@@ -90,6 +98,28 @@ describe('SignupPage (FLOW-1)', () => {
     expect(localStorage.getItem(TOKEN_KEY)).toBeNull()
   })
 
+  it('muestra un mensaje por cada campo que rechaza la API', async () => {
+    mockFetch(
+      jsonResponse(
+        {
+          errors: [
+            { message: '', rule: 'email', field: 'email' },
+            { message: '', rule: 'maxLength', field: 'password' },
+          ],
+        },
+        422,
+      ),
+    )
+    renderApp('/signup')
+
+    await fillAndSubmit()
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('El email no tiene un formato válido.')
+    expect(alert).toHaveTextContent('La contraseña supera la longitud máxima.')
+    expect(currentPath()).toBe('/signup')
+  })
+
   it('no llama a la API si las contraseñas no coinciden', async () => {
     const fetchMock = mockFetch()
     renderApp('/signup')
@@ -105,6 +135,10 @@ describe('SignupPage (FLOW-1)', () => {
   it('enlaza con la pantalla de login', async () => {
     renderApp('/signup')
     await userEvent.click(screen.getByRole('link', { name: 'Inicia sesión' }))
-    expect(screen.getByRole('button', { name: 'Entrar' })).toBeInTheDocument()
+
+    expect(currentPath()).toBe('/login')
+    expect(
+      await screen.findByRole('button', { name: 'Entrar' }),
+    ).toBeInTheDocument()
   })
 })
