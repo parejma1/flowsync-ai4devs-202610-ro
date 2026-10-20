@@ -3,12 +3,17 @@ import { ApiError } from '@/lib/api'
 const NETWORK_ERROR = 'No se pudo conectar con el servidor. Inténtalo de nuevo.'
 const UNEXPECTED_ERROR = 'Ha ocurrido un error inesperado. Inténtalo de nuevo.'
 
-const FIELD_LABELS: Record<string, string> = {
-  fullName: 'El nombre',
-  email: 'El email',
-  password: 'La contraseña',
-  passwordConfirmation: 'La confirmación de contraseña',
+// `feminine` decide la concordancia de los adjetivos ("obligatorio/a").
+const FIELD_LABELS: Record<string, { label: string; feminine: boolean }> = {
+  fullName: { label: 'El nombre', feminine: false },
+  email: { label: 'El email', feminine: false },
+  password: { label: 'La contraseña', feminine: true },
+  passwordConfirmation: {
+    label: 'La confirmación de contraseña',
+    feminine: true,
+  },
 }
+const UNKNOWN_FIELD = { label: 'Un campo', feminine: false }
 
 function validationMessage(
   field: string | undefined,
@@ -21,18 +26,19 @@ function validationMessage(
     return 'Las contraseñas no coinciden.'
   }
 
-  const label = (field && FIELD_LABELS[field]) ?? 'Un campo'
+  const { label, feminine } = (field && FIELD_LABELS[field]) || UNKNOWN_FIELD
+  const o = feminine ? 'a' : 'o'
   switch (rule) {
     case 'required':
-      return `${label} es obligatorio.`
+      return `${label} es obligatori${o}.`
     case 'email':
       return `${label} no tiene un formato válido.`
     case 'minLength':
       return `${label} debe tener al menos 8 caracteres.`
     case 'maxLength':
-      return `${label} es demasiado largo.`
+      return `${label} supera la longitud máxima.`
     default:
-      return `${label} no es válido.`
+      return `${label} no es válid${o}.`
   }
 }
 
