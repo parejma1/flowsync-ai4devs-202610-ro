@@ -37,9 +37,13 @@ Frontend (`cd frontend`), sirve en `http://localhost:5173`:
 npm run dev       # vite
 npm run build     # tsc -b && vite build (es también la comprobación de tipos)
 npm run lint      # oxlint (.oxlintrc.json)
+npm test          # Vitest + Testing Library (jsdom), src/**/*.test.{ts,tsx}
+npm run test:e2e  # Playwright (Chromium headless), e2e/*.spec.ts
 ```
 
-El frontend no tiene formateador ni tests configurados.
+- Los tests de Vitest simulan `fetch` con los helpers de `src/test/utils.tsx`.
+- Playwright arranca solo backend (`node ace serve`, en modo dev porque el CORS solo acepta orígenes en desarrollo) y frontend, o reutiliza los que ya estén levantados. Usa la BD de desarrollo con emails únicos por test.
+- La primera vez en un servidor nuevo: `npx playwright install chromium` y, con sudo, `npx playwright install-deps chromium`.
 
 ## Arquitectura del backend
 
