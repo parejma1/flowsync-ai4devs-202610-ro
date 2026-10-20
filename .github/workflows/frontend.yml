@@ -1,0 +1,62 @@
+name: frontend
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      # Backend: solo se prepara; Playwright lo arranca vía webServer.
+      - name: Preparar backend
+        working-directory: backend
+        run: |
+          npm ci
+          cp .env.example .env
+          node ace generate:key
+
+      - name: Instalar frontend
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build (incluye tsc)
+        working-directory: frontend
+        run: npm run build
+
+      - name: Tests unitarios (Vitest)
+        working-directory: frontend
+        run: npm test
+
+      - name: Instalar Chromium
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Tests e2e (Playwright)
+        working-directory: frontend
+        run: npm run test:e2e
+
+      - name: Informe de Playwright
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          retention-days: 7

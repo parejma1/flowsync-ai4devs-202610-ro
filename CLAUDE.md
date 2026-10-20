@@ -7,7 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 FlowSync: proyecto de ejercicio del módulo 1 de AI4Devs (cohorte 202610-ro). Monorepo sin workspaces con dos apps independientes, cada una con su propio `package.json` y `node_modules`:
 
 - `backend/`: API AdonisJS 7 (TypeScript, Lucid + SQLite, VineJS, auth por access tokens). **Ya existe y no se modifica en el ejercicio**: se lee para saber qué exige la API.
-- `frontend/`: React 19 + Vite 8 + TypeScript. Aquí es donde se trabaja. Ahora mismo es la plantilla de Vite sin tocar (sin router, sin cliente HTTP, sin Tailwind/shadcn instalados todavía).
+- `frontend/`: React 19 + Vite 8 + TypeScript. Aquí es donde se trabaja. Usa react-router, Tailwind v4 y shadcn/ui (`src/components/ui/`, generados por el CLI de shadcn: no se editan a mano). Tiene la auth de FLOW-1 (registro, login, perfil protegido):
+  - `src/lib/api.ts`: cliente `fetch` que desenvuelve `{ data }` y lanza `ApiError`.
+  - `src/lib/error-messages.ts`: traduce los errores de la API a mensajes en español.
+  - `src/auth/`: token en `localStorage` (`flowsync.token`) y guardas de ruta.
+  - `src/pages/`: pantallas de login, registro y perfil.
 
 `README.md` es el enunciado del ejercicio y está generado: no se edita a mano. `prompts.md` es la plantilla donde se registran los prompts lanzados (parte del entregable, junto con `docs/harness/comparacion.md`).
 
@@ -37,9 +41,24 @@ Frontend (`cd frontend`), sirve en `http://localhost:5173`:
 npm run dev       # vite
 npm run build     # tsc -b && vite build (es también la comprobación de tipos)
 npm run lint      # oxlint (.oxlintrc.json)
+npm run format    # prettier (.prettierrc.json) sobre src/
+npm test          # Vitest + Testing Library (jsdom), src/**/*.test.{ts,tsx}
+npm run test:e2e  # Playwright (Chromium headless), e2e/*.spec.ts
+npx vitest run src/pages/LoginPage.test.tsx      # un solo archivo
+npx playwright test -g "logout"                  # un solo e2e por título
 ```
 
-El frontend no tiene formateador ni tests configurados.
+- **Vitest**:
+  - Simula `fetch` con los helpers de `src/test/utils.tsx`. `renderApp(path)` monta la app con `MemoryRouter` y `currentPath()` devuelve la ruta actual.
+  - Como los mocks reproducen las respuestas que espera el código, **el contrato real con la API (status, `rule`, forma de `{ data }`) solo lo validan los e2e**.
+- **Playwright**:
+  - Arranca solo el backend (`node ace migration:run && node ace serve`) y el frontend, o reutiliza los que ya estén levantados fuera de CI.
+  - El backend corre en modo dev, porque su CORS solo acepta orígenes en desarrollo. Por eso usa la BD de desarrollo (`backend/tmp/db.sqlite3`).
+  - Los tests crean usuarios `@e2e.flowsync.test` y `e2e/db-cleanup.ts` los borra antes y después de la suite.
+- **Requisitos de los e2e**:
+  - `backend/.env` con `APP_KEY` (ver "setup inicial" del backend).
+  - La primera vez en un servidor nuevo: `npx playwright install chromium` y, con sudo, `npx playwright install-deps chromium`.
+- **CI**: `.github/workflows/frontend.yml` ejecuta lint, build, Vitest y Playwright en cada push y PR.
 
 ## Arquitectura del backend
 
