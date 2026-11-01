@@ -403,5 +403,5 @@ Comprobé 2 Requisitos
 | 2 | Iniciales del usuario | Sin nombre, las iniciales salen de la primera letra del email y de la primera del **dominio**: `p3@example.com` da `PE`, y todo el que use `@gmail.com` acaba en `?G`. Además, si hay espacios dobles en medio del nombre, `Ada  Lovelace` da `A` en vez de `AL`. | Baja | `backend/app/models/user.ts` (getter `initials`, `split(' ')` y `split('@')`). |
 
 ## 3. No supe ver si esto se puede considerar Bug o contrato
-El caso de las Iniciales del usuario no supe clasificarlo
+El caso de las Iniciales del usuario no supe clasificarlo.
 

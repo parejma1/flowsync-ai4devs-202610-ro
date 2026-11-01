@@ -69,3 +69,4 @@ me indicó que cruzó los 18 requisitos con el código y con lo que vió al prob
 Encontró además un error de la propia spec relacionado con el requisito de las Iniciales del usuario.
 
 
+
