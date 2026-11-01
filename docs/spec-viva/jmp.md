@@ -76,17 +76,22 @@ El sistema SHALL rechazar un registro cuyos datos no cumplan las reglas con una 
 
 ### Requirement: Iniciales del usuario
 
-El sistema SHALL devolver junto a cada usuario un campo `initials`, en mayúsculas, calculado a partir de su nombre o, si no tiene nombre, de su email.
+El sistema SHALL devolver junto a cada usuario un campo `initials`, en mayúsculas, calculado a partir de su nombre o, si no tiene nombre, de su email. El nombre se trocea por cada espacio simple, sin recortarlo antes, así que con espacios dobles o iniciales las iniciales pueden salir de menos de dos letras o vacías.
 
 #### Scenario: Nombre con dos o más palabras
 
 - **WHEN** el usuario se llama `ana maria lopez`
-- **THEN** `initials` vale `AM` (primera letra de las dos primeras palabras)
+- **THEN** `initials` vale `AM` (primera letra de los dos primeros trozos separados por un espacio)
 
 #### Scenario: Nombre de una sola palabra
 
 - **WHEN** el usuario se llama `grace`
 - **THEN** `initials` vale `GR` (dos primeras letras)
+
+#### Scenario: Nombre con espacios irregulares
+
+- **WHEN** el usuario se registra por la API con el nombre `Ada  Lovelace` (dos espacios)
+- **THEN** `initials` vale `AD`, porque el segundo trozo está vacío y se usan las dos primeras letras del primero
 
 #### Scenario: Usuario sin nombre
 
@@ -248,10 +253,20 @@ La aplicación web SHALL ofrecer en `/register` un formulario titulado «Crea tu
 - **WHEN** se deja el nombre vacío o solo con espacios y se crea la cuenta
 - **THEN** la cuenta se crea sin nombre
 
+#### Scenario: Espacios alrededor del nombre
+
+- **WHEN** se escribe el nombre ` Ada Lovelace ` con espacios al principio y al final
+- **THEN** la cuenta se crea con el nombre `Ada Lovelace`, sin esos espacios
+
+#### Scenario: Campos vacíos
+
+- **WHEN** se pulsa el botón de enviar de login o registro con campos obligatorios vacíos
+- **THEN** el navegador no bloquea el envío; los datos llegan al servidor y su respuesta se muestra, por ejemplo «Falta rellenar el email.» bajo «Email»
+
 #### Scenario: Contraseñas distintas detectadas antes de enviar
 
-- **WHEN** «Contraseña» y «Repite la contraseña» no coinciden y se pulsa «Crear cuenta»
-- **THEN** aparece «Las contraseñas no coinciden.» bajo «Repite la contraseña» y no se envía nada al servidor
+- **WHEN** «Contraseña» y «Repite la contraseña» no coinciden y se pulsa «Crear cuenta», aunque además haya otros campos inválidos
+- **THEN** solo aparece «Las contraseñas no coinciden.» bajo «Repite la contraseña» y no se envía nada al servidor
 
 ### Requirement: Mensajes de error comprensibles en los formularios
 
@@ -269,8 +284,13 @@ La aplicación web SHALL mostrar en castellano los errores que devuelve el servi
 
 #### Scenario: Error de un campo que no está en pantalla
 
-- **WHEN** el servidor devuelve un error de validación sobre un campo que el formulario no muestra
-- **THEN** el mensaje aparece en el aviso general de la parte superior, para que nunca quede oculto
+- **WHEN** el servidor devuelve errores de validación y al menos uno de ellos es de un campo que el formulario no muestra
+- **THEN** el aviso general de la parte superior muestra el mensaje del primer error de la lista (que puede no ser el del campo oculto), y los errores de campos visibles se siguen mostrando bajo su campo
+
+#### Scenario: Regla sin traducción
+
+- **WHEN** el servidor devuelve un error de validación con una regla para la que no hay frase preparada
+- **THEN** se muestra «Revisa» seguido del campo, por ejemplo «Revisa el email.»; si el campo tampoco es conocido, «Revisa el campo.»
 
 #### Scenario: Servidor inaccesible
 
@@ -279,8 +299,13 @@ La aplicación web SHALL mostrar en castellano los errores que devuelve el servi
 
 #### Scenario: Fallo interno del servidor
 
-- **WHEN** el servidor responde con un error no previsto
+- **WHEN** el servidor responde con un código distinto de 400, 401 y 422 (por ejemplo 404, 429 o 500), o con un 422 sin errores, o con un cuerpo que no es JSON
 - **THEN** el aviso general muestra «Algo ha ido mal en el servidor. Inténtalo de nuevo en un momento.»
+
+#### Scenario: Cualquier 400 o 401
+
+- **WHEN** el servidor responde a un formulario con un 400, sea cual sea su cuerpo, o con un 401
+- **THEN** el aviso general muestra, respectivamente, «El email o la contraseña no son correctos.» o «Tu sesión ha caducado. Vuelve a iniciar sesión.»
 
 ### Requirement: Pantalla de inicio de sesión
 
@@ -303,7 +328,7 @@ La aplicación web SHALL ofrecer en `/login` un formulario titulado «Inicia ses
 
 ### Requirement: Pantalla de perfil
 
-La aplicación web SHALL mostrar en `/profile` un círculo con las iniciales del usuario, su nombre (o «Sin nombre» si no tiene), su email, la fecha de alta como «Miembro desde» en formato largo en castellano (por ejemplo, «1 de noviembre de 2026») y un botón «Cerrar sesión».
+La aplicación web SHALL mostrar en `/profile` un círculo con las iniciales del usuario, su nombre (o «Sin nombre» si no tiene), su email, la fecha de alta como «Miembro desde» en formato largo en castellano (por ejemplo, «1 de noviembre de 2026»), calculada en la zona horaria del navegador, y un botón «Cerrar sesión».
 
 #### Scenario: Usuario con nombre
 
@@ -317,12 +342,12 @@ La aplicación web SHALL mostrar en `/profile` un círculo con las iniciales del
 
 ### Requirement: Cierre de sesión desde la pantalla
 
-La aplicación web SHALL cerrar la sesión en el navegador en cuanto se pulsa «Cerrar sesión», tanto si el servidor confirma la revocación del token como si falla, y SHALL llevar a la persona a `/login` sin mostrar ningún aviso de error.
+La aplicación web SHALL cerrar la sesión en el navegador en cuanto se pulsa «Cerrar sesión», sin esperar a la respuesta del servidor y tanto si confirma la revocación del token como si falla, y SHALL llevar a la persona a `/login` al instante, sin mostrar ningún aviso de error.
 
 #### Scenario: Cierre normal
 
 - **WHEN** una persona con sesión pulsa «Cerrar sesión»
-- **THEN** el botón pasa a «Cerrando sesión…», la persona acaba en `/login` sin aviso y su token queda revocado en el servidor
+- **THEN** la persona pasa de inmediato a `/login` sin aviso y, en segundo plano, su token queda revocado en el servidor
 
 #### Scenario: El servidor no responde al cerrar sesión
 
@@ -347,6 +372,16 @@ La aplicación web SHALL recordar la sesión en el navegador de modo que recarga
 
 - **WHEN** se abre la aplicación con una sesión guardada y no se puede contactar con el servidor
 - **THEN** se muestra la pantalla de inicio de sesión con «No se pudo conectar con el servidor. Comprueba que el backend está arrancado.», pero la sesión guardada se conserva, de modo que al recargar con el servidor ya disponible la persona vuelve a su perfil sin iniciar sesión
+
+#### Scenario: Error del servidor al restaurar la sesión
+
+- **WHEN** se abre la aplicación con una sesión guardada y el servidor responde con un error que no es 401 (por ejemplo, un 500)
+- **THEN** se muestra la pantalla de inicio de sesión con «Algo ha ido mal en el servidor. Inténtalo de nuevo en un momento.» y la sesión guardada se conserva igual que cuando el servidor no responde
+
+#### Scenario: Dónde se ve el aviso de sesión perdida
+
+- **WHEN** hay un aviso de sesión perdida y la persona pasa de `/login` a `/register` y vuelve
+- **THEN** el aviso no aparece en la pantalla de registro y vuelve a verse al regresar a `/login`
 
 #### Scenario: El aviso de sesión perdida desaparece
 
