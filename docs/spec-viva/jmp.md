@@ -387,3 +387,21 @@ La aplicación web SHALL recordar la sesión en el navegador de modo que recarga
 
 - **WHEN** la pantalla de inicio de sesión muestra el motivo de una sesión perdida y la persona inicia sesión con éxito
 - **THEN** el aviso deja de mostrarse; y si en lugar de eso el intento falla, el aviso pasa a mostrar el error de ese intento
+
+
+# PARTE B: Las 3 Listas
+## 1. Requisitos generados y comprobados:
+```
+Escribió 18 Requisitos.
+Comprobé 2 Requisitos
+```
+## 2. Incoherencias detectadas
+
+| # | Dónde | Problema | Evidencia |
+|---|---|---|---|
+| 1 | Requisito «Iniciales del usuario» | Dice que el nombre se trocea «sin recortarlo antes» y que las iniciales pueden salir «vacías». Es falso: el backend recorta los espacios del principio y del final de **todos** los campos de texto antes de validar, así que una inicial vacía no se puede dar por la API (`" ada"` llega como `"ada"` y da `AD`). Sí puede salir una sola letra (`"A  B"`, `"a"`). | El parser del cuerpo de las peticiones tiene `trimWhitespaces: true` por defecto y no se desactiva en `backend/config/bodyparser.ts`. |
+| 2 | Iniciales del usuario | Sin nombre, las iniciales salen de la primera letra del email y de la primera del **dominio**: `p3@example.com` da `PE`, y todo el que use `@gmail.com` acaba en `?G`. Además, si hay espacios dobles en medio del nombre, `Ada  Lovelace` da `A` en vez de `AL`. | Baja | `backend/app/models/user.ts` (getter `initials`, `split(' ')` y `split('@')`). |
+
+## 3. No supe ver si esto se puede considerar Bug o contrato
+El caso de las Iniciales del usuario no supe clasificarlo
+
