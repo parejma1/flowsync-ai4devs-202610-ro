@@ -1,6 +1,7 @@
 import Task from '#models/task'
 import User from '#models/user'
 import { test } from '@japa/runner'
+import type { Assert } from '@japa/assert'
 import testUtils from '@adonisjs/core/services/test_utils'
 
 /**
@@ -39,9 +40,15 @@ test.group('Tasks | responsable', (group) => {
     return (response.body() as { data: unknown }).data
   }
 
-  function noFiltraLaCuenta(assert: any, assignee: Record<string, unknown>, email: string) {
-    assert.notProperty(assignee, 'email')
-    assert.notProperty(assignee, 'password')
+  /**
+   * La spec dice «ningún otro dato de esa cuenta», así que se fija la lista
+   * cerrada de claves en vez de vetar unas cuantas: un `createdAt` o un campo
+   * nuevo de la cuenta tienen que poner el test en rojo igual que el email. El
+   * `id` va en la lista porque es lo que `TaskAssigneeTransformer` publica para
+   * referenciar al responsable, no un dato de acceso.
+   */
+  function noFiltraLaCuenta(assert: Assert, assignee: Record<string, unknown>, email: string) {
+    assert.sameMembers(Object.keys(assignee), ['id', 'fullName', 'initials'])
     assert.notInclude(JSON.stringify(assignee), email)
   }
 
@@ -135,12 +142,33 @@ test.group('Tasks | responsable', (group) => {
 
     const fila = datos(lista).find((t: any) => t.id === task.id)
 
+    // Basta con que lleguen: cómo se derivan es la regla de «Iniciales de la
+    // cuenta» de la spec de auth, y ya la cubre `auth/initials.spec.ts`.
     for (const assignee of [fila.assignee, datos(suelta).assignee]) {
       assert.isNull(assignee.fullName)
-      assert.equal(assignee.initials, 'SE')
-      // Las iniciales salen del email, pero el email en sí no puede viajar con
-      // ellas: es justo lo que el scenario quiere evitar.
-      noFiltraLaCuenta(assert, assignee, 'sin-nombre@example.com')
+      assert.isString(assignee.initials)
+      assert.isNotEmpty(assignee.initials)
     }
+  })
+
+  /**
+   * Va aparte del anterior a propósito: las iniciales de una cuenta sin nombre
+   * se calculan a partir del email, y es justo ahí donde más tienta mandar el
+   * email con ellas. Si los dos casos fueran juntos, una fuga pondría en rojo
+   * también el scenario del nombre nulo.
+   */
+  test('un responsable sin nombre no se representa con su email', async ({ client, assert }) => {
+    const { user, task } = await tareaDe(null, 'sin-nombre@example.com')
+
+    const lista = await client.get('/api/v1/tasks').loginAs(user)
+    const suelta = await client.get(`/api/v1/tasks/${task.id}`).qs({ today: HOY }).loginAs(user)
+
+    lista.assertStatus(200)
+    suelta.assertStatus(200)
+
+    const fila = datos(lista).find((t: any) => t.id === task.id)
+
+    noFiltraLaCuenta(assert, datos(suelta).assignee, 'sin-nombre@example.com')
+    noFiltraLaCuenta(assert, fila.assignee, 'sin-nombre@example.com')
   })
 })
